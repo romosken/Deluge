@@ -1,0 +1,33 @@
+/*
+
+Código atualiza a taxa de conversão da moeda no CRM (no caso o dollar para real, caso queira outra moeda utilize a url: "https://economia.awesomeapi.com.br/json/all" para verificar as moedas)
+
+*/
+
+
+response = getURL("https://economia.awesomeapi.com.br/json/USD-BRL");
+dollarHj = response.getJSON("bid");
+info "Dollar Agora: "+dollarHj;
+
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/org/currencies/3559972000000625482"
+	type : PUT
+	parameters:"{\"currencies\": [{\"exchange_rate\": \""+dollarHj+"\"}]}"
+	connection:"Sua conexão do CRM"
+];
+info response;
+
+
+/*
+
+Usar seguinte código para pegar id da moeda:
+
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/org/currencies"
+	type : GET
+	connection:"Sua conexão do CRM"
+];
+info response;
+*/
