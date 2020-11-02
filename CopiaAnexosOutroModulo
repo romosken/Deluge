@@ -1,0 +1,95 @@
+/* Funcao pega os anexos do modulo Deals e as copia para o modulo Contacts, evitando duplicidade */
+
+anexosContato = zoho.crm.getRelatedRecords("Attachments","Contacts",toLong(idContato));
+relatedrcords = zoho.crm.getRelatedRecords("Attachments","Deals",toLong(id));
+
+attachid = List();
+idAnexoLista = List();
+idExclusaoLista = List();
+
+for each  arquivoContato in anexosContato
+{
+	nomeAnexo = arquivoContato.get("File_Name");
+  
+  //os códigos abaixos são para evitar duplicidade dos anexos, já que quando um anexo é passado para outro módulo, seu nome substitui acentos por ? e retira os espaços
+  
+	for each  arquivo in relatedrcords
+	{
+		nomeAnexo2 = arquivo.get("File_Name");
+		nomeAnexo2 = nomeAnexo2.replaceAll(" ","");
+		nomeAnexo2 = nomeAnexo2.replaceAll("ã","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("â","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("á","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("ê","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("é","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("ó","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("ô","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("í","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("î","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("ú","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("û","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("Ã","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("Â","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("Á","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("Ê","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("É","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("Ó","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("Ô","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("Í","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("Î","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("Ú","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("Û","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("ç","?");
+		nomeAnexo2 = nomeAnexo2.replaceAll("Ç","?");
+		if(nomeAnexo2 == nomeAnexo)
+		{
+    
+      //adiciona o id de anexos já existentes no módulo à lista de exclusão
+      
+			idExclusao = arquivo.get("id");
+			idExclusaoLista.add(idExclusao);
+			info "id excluido: " + idExclusao;
+		}
+	}
+}
+
+//pega os ids dos anexos no módulo base e adiciona numa lista
+
+for each  arquivo in relatedrcords
+{
+	attachementId = arquivo.get("id");
+	attachid.add(attachementId);
+	info "id da lista: " + attachementId;
+}
+
+attachid.removeAll(idExclusaoLista); //exclui da lista de ids base, toda a lista de exclusão
+
+info attachid;
+
+//utilizando a lista de ids base, faz o download do anexo, via API do CRM e anexa no módulo desejado
+for each  arquivo in attachid
+{
+	downloadFile = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/Deals/" + id + "/Attachments/" + arquivo
+		type :GET
+		connection:"Sua conexão do CRM"
+	];
+	info downloadFile;
+	resp = zoho.crm.attachFile("Contacts",idContato,downloadFile);
+	info resp;
+}
+
+/*Steps to create connections:
+
+1) Navigate to Settings --> Developer Space --> Connections
+
+2) Click " Add Connection"
+
+3) Choose Zoho OAuth
+
+4) Choose all the scope for ZohoCRM
+
+5) Click " Create and Connect"
+
+6) Click " Connect" and click " Agree"*/
