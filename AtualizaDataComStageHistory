@@ -1,0 +1,51 @@
+/*
+
+
+Função atualiza a data de fechamento de uma Deal, com a data em que foi feita a transição para perdida.
+(Verificar id do estágio no seu CRM)
+
+
+
+*/
+
+obterDados = zoho.crm.getRecordById("Deals",id);
+estagioAtual = obterDados.get("Stage");
+
+historico = zoho.crm.getRelatedRecords("Stage_History","Deals",id);
+
+dataFinal = "01-01-1900";
+dataFinal = toDate(dataFinal);
+dataLista = List();
+
+//para cada registro de historico de estágio no módulo Deals, verifica se o estágio é perdido (os ids são únicos por organização), e adiciona a data dessa transição de estágio numa lista
+for each  nome in historico
+{
+	estagio = nome.get("Stage");
+	if(estagio = "3692721000000006817" || estagio = "3692721000005326955")
+	{
+		//estagio perdida = 3692721000000006817  |  estagio perdida sem resposta = 3692721000005326955
+		data = nome.get("Last_Modified_Time");
+		data = toDate(data);
+		dataLista.add(data);
+	}
+}
+info dataLista;
+
+//faz a comparação das datas na lista de datas e armazena a data mais atual de todas
+for each  data in dataLista
+{
+	if(data > dataFinal)
+	{
+		dataFinal = data;
+	}
+}
+info dataFinal;
+
+mp = Map();
+
+//caso o estágio seja Perdida ou Perdida Sem Resposta (adaptar essa parte para seus estágios específicos), coloca no campo "Data de fechamento", a data que armazenamos (última transição para o estágio de perdida)
+if(estagioAtual = "Perdida" || estagioAtual = "Perdida Sem Resposta")
+{
+	mp.put("Closing_Date",dataFinal);
+	updateDetails = zoho.crm.updateRecord("Deals",id,mp);
+}
